@@ -1,6 +1,6 @@
-# Custom Testimonial Builder & Embeddable Widget Platform
+# 🍹 Sip & Savor - Recipe Discovery Platform
 
-## Project Overview
+**Project Overview**
 
 **Student:** Gayatri Jaiswal – 2024-B-29012006B
 
@@ -8,79 +8,94 @@
 
 ## 🎯 Problem Statement
 
-Many businesses and freelancers struggle to collect, manage, and showcase authentic customer testimonials effectively. Existing solutions are either too rigid or require manual updates on their websites every time a testimonial changes. There is a need for an easy-to-use platform where users can create, customize, and automatically embed testimonials and collect feedback from visitors in real-time.
+Home cooks and cocktail enthusiasts struggle to find quality recipes across multiple platforms. They need to switch between different apps for food recipes and cocktail instructions, leading to a fragmented cooking and mixing experience. Users lack a centralized place to save their favorite recipes, plan meals with available ingredients, and discover new culinary creations.
+
+---
 
 ## 💡 Proposed Solution
 
-Develop a web application where users can create custom testimonials with personalized designs and generate a small embed code to insert on their own websites. The platform will also provide a feedback submission widget embedded alongside the testimonials to gather new reviews directly from site visitors. All data is stored and managed centrally, allowing users to update testimonials once and have those updates reflected instantly everywhere.
+**Sip & Savor** is a unified mobile application that brings together food recipes and cocktail recipes in one elegant platform. Leveraging the Spoonacular API for food recipes and TheCocktailDB API for drink recipes, users can search, discover, save, and organize their favorite recipes with intelligent filters and personalized collections.
+
+---
 
 ## ✨ Key Features
 
-- **User Dashboard**: Registration and centralized management of all testimonials
-- **Custom Testimonial Builder**: Creation tool with customizable templates and styling options
-- **Auto-Generated Embed Code**: JS snippet or iframe for seamless website integration
-- **Live Feedback Collection**: Embedded submission widget to gather new testimonials from site visitors
-- **Testimonial Management**: Dashboard to approve, edit, or delete submitted testimonials
-- **Responsive Design**: Mobile-friendly interface across all devices
+* **Unified Search**: Search for both food recipes and cocktails in one place
+* **Advanced Filtering**: Filter by cuisine, dietary restrictions, ingredients, and difficulty level
+* **Recipe Details**: Comprehensive view with ingredients, instructions, nutritional information, and images
+* **Smart Ingredient Search**: Find recipes based on ingredients you already have
+* **Save & Organize**: Create custom collections and save favorite recipes
+* **Shopping Lists**: Generate shopping lists from selected recipes
+* **User Dashboard**: Personalized dashboard with saved recipes and recommendations
+* **Meal Planning**: Plan weekly meals and cocktail menus
+* **Offline Access**: View saved recipes without internet connection
+* **Cross-Platform**: Works seamlessly on iOS, Android, and Web
+
+---
 
 ## 👥 Target Audience
 
-- Small business owners
-- Freelancers and consultants
-- Marketing teams and agencies
-- Bloggers and content creators who want to showcase feedback easily
+* Home cooks seeking diverse recipe inspiration
+* Cocktail enthusiasts eager to learn new drink recipes
+* Students seeking quick and budget-friendly recipes
+* Party hosts planning menus for gatherings
+* Dietary-conscious users finding recipes that match specific needs
+
+---
 
 ## 🛠️ Technology Stack
 
-### Frontend
-- **Framework**: React.js
-- **Styling**: Tailwind CSS
-- **Hosting**: Vercel
+### Frontend (Mobile & Web)
+* **Framework**: React Native (with React Native Web for web support)
+* **UI Library**: React Native Paper / NativeBase
+* **Navigation**: React Navigation
+* **State Management**: Redux Toolkit / Zustand
+* **HTTP Client**: Axios
+* **Styling**: StyleSheet / Tailwind CSS (via NativeWind)
+* **Icons**: React Native Vector Icons
 
 ### Backend
-- **Runtime**: Node.js
-- **Framework**: Express.js
-- **Hosting**: Heroku or Render
+* **Runtime**: Node.js
+* **Framework**: Express.js
+* **API Integration**: Spoonacular API & TheCocktailDB API
+* **Hosting**: Heroku or Render
 
 ### Database & Storage
-- **Database**: MongoDB Atlas
-- **File Storage**: Cloudinary (for testimonial images)
+* **Database**: MongoDB Atlas
+* **ODM**: Mongoose
+* **Local Storage**: AsyncStorage (React Native)
+* **Image Storage**: Cloudinary
 
 ### Authentication & Security
-- **Auth**: JWT or Firebase Authentication
+* **Auth**: JWT (JSON Web Tokens)
+* **Password Hashing**: bcrypt
+* **Secure Storage**: React Native Keychain / Expo SecureStore
 
-### Embed Widget
-- **Technology**: Vanilla JavaScript or lightweight React bundle
+### Mobile Deployment
+* **iOS**: App Store (via Xcode)
+* **Android**: Google Play Store (via Android Studio)
+* **Build Tool**: Expo or React Native CLI
+
+### Web Deployment
+* **Hosting**: Vercel / Netlify
+* **Web Support**: React Native Web
+
+---
 
 ## 🎯 Expected Outcome
 
-A functional web platform that allows users to create and customize testimonials, generate embeddable code, and seamlessly collect new feedback from visitors. Changes made on the platform will instantly reflect on users' websites without needing code updates. The app will have an intuitive dashboard for managing all testimonial data.
+A fully functional cross-platform recipe discovery application that seamlessly integrates food and cocktail recipes into one intuitive mobile and web interface. Users will be able to search and filter recipes, save favorites, generate shopping lists, plan meals, and discover new recipes based on available ingredients across iOS, Android, and web platforms.
+
+---
 
 ## 📅 Development Timeline
 
 | Week | Phase | Tasks |
 |------|-------|-------|
-| 1-2 | **Planning & Setup** | Requirement analysis, UI/UX design, user authentication setup |
-| 3-4 | **Core Features** | Develop testimonial creation and editing features |
-| 5-6 | **Widget Development** | Implement embed widget for displaying testimonials and collecting feedback |
-| 7 | **Management Features** | Dashboard features for testimonial approval and management |
-| 8 | **Deployment** | Testing, bug fixes, deployment, and documentation |
+| 1-2 | **Planning & Setup** | React Native project setup, API integration planning, database schema design, UI/UX wireframing, authentication setup |
+| 3-4 | **API Integration & Core Features** | Integrate Spoonacular and TheCocktailDB APIs, develop search functionality, create recipe detail screens |
+| 5-6 | **User Features** | Implement user dashboard, save/favorite functionality, custom collections, shopping list generation, offline support |
+| 7 | **Enhanced Features** | Meal planning, profile management, push notifications, cross-platform optimization |
+| 8 | **Testing & Deployment** | Testing on iOS/Android/Web, bug fixes, performance optimization, app store deployment |
 
-## 🔧 Technical Considerations
-
-### Security
-- Ensure embed widget is lightweight and secure to prevent cross-site scripting (XSS)
-- Implement proper input validation and sanitization
-
-### Scalability
-- Plan for scalability if user base grows
-- Optimize database queries and implement caching where necessary
-
-### Future Enhancements
-- Analytics for testimonial views and feedback submissions
-- Advanced customization options for testimonial styling
-- Integration with popular website builders (WordPress, Shopify, etc.)
-- API access for advanced users
-
-
-**Note**: This is a student project submission for academic purposes.
+---
