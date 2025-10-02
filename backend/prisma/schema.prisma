@@ -1,0 +1,144 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  fullName     String?  @map("full_name") @db.VarChar(255)
+  avatarUrl    String?  @map("avatar_url") @db.Text
+  passwordHash String   @map("password_hash") @db.VarChar(255)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  favorites     UserFavorite[]
+  collections   Collection[]
+  searchHistory SearchHistory[]
+  ratings       UserRating[]
+
+  @@map("users")
+}
+
+model Recipe {
+  id            Int      @id
+  title         String   @db.VarChar(500)
+  imageUrl      String?  @map("image_url") @db.Text
+  summary       String?  @db.Text
+  instructions  String?  @db.Text
+  prepTime      Int?     @map("prep_time")
+  cookTime      Int?     @map("cook_time")
+  servings      Int?
+  cuisineType   String?  @map("cuisine_type") @db.VarChar(100)
+  dietType      String?  @map("diet_type") @db.VarChar(100)
+  nutritionData Json?    @map("nutrition_data")
+  ingredients   Json?
+  sourceUrl     String?  @map("source_url") @db.Text
+  cachedAt      DateTime @default(now()) @map("cached_at")
+
+  @@index([cuisineType])
+  @@index([dietType])
+  @@map("recipes")
+}
+
+model Cocktail {
+  id           Int      @id
+  name         String   @db.VarChar(255)
+  category     String?  @db.VarChar(100)
+  alcoholic    String?  @db.VarChar(50)
+  glassType    String?  @map("glass_type") @db.VarChar(100)
+  instructions String?  @db.Text
+  imageUrl     String?  @map("image_url") @db.Text
+  ingredients  Json?
+  cachedAt     DateTime @default(now()) @map("cached_at")
+
+  @@index([category])
+  @@index([alcoholic])
+  @@map("cocktails")
+}
+
+model UserFavorite {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  itemType  String   @map("item_type") @db.VarChar(20)
+  itemId    Int      @map("item_id")
+  notes     String?  @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, itemType, itemId])
+  @@index([userId])
+  @@index([itemType, itemId])
+  @@map("user_favorites")
+}
+
+model Collection {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  name        String   @db.VarChar(255)
+  description String?  @db.Text
+  isPublic    Boolean  @default(false) @map("is_public")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user  User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items CollectionItem[]
+
+  @@index([userId])
+  @@map("collections")
+}
+
+model CollectionItem {
+  id           String   @id @default(uuid())
+  collectionId String   @map("collection_id")
+  itemType     String   @map("item_type") @db.VarChar(20)
+  itemId       Int      @map("item_id")
+  addedAt      DateTime @default(now()) @map("added_at")
+
+  collection Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+
+  @@unique([collectionId, itemType, itemId])
+  @@index([collectionId])
+  @@map("collection_items")
+}
+
+model SearchHistory {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  searchQuery String   @map("search_query") @db.VarChar(255)
+  searchType  String   @map("search_type") @db.VarChar(20)
+  searchedAt  DateTime @default(now()) @map("searched_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, searchedAt])
+  @@map("search_history")
+}
+
+model UserRating {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  itemType  String   @map("item_type") @db.VarChar(20)
+  itemId    Int      @map("item_id")
+  rating    Int
+  review    String?  @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, itemType, itemId])
+  @@index([itemType, itemId])
+  @@map("user_ratings")
+}
