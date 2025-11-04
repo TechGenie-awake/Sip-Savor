@@ -37,20 +37,38 @@ const HomeScreen = ({ navigation }) => {
 
       // Fetch random recipes
       const recipesRes = await fetch(`${API_URL}/recipes/random?number=6`);
-      const recipesData = await recipesRes.json();
-      setTrendingRecipes(recipesData.recipes || []);
+      if (!recipesRes.ok) {
+        const errorText = await recipesRes.text();
+        console.error("Recipes API error:", recipesRes.status, errorText);
+        setTrendingRecipes([]);
+      } else {
+        const recipesData = await recipesRes.json();
+        setTrendingRecipes(recipesData.recipes || []);
+      }
 
       // Fetch random cocktails (making 6 separate requests)
       const cocktailsPromises = Array(6)
         .fill()
-        .map(() => fetch(`${API_URL}/cocktails/random`).then((r) => r.json()));
+        .map(async () => {
+          try {
+            const res = await fetch(`${API_URL}/cocktails/random`);
+            if (res.ok) {
+              return await res.json();
+            }
+            return null;
+          } catch (err) {
+            console.error("Cocktail fetch error:", err);
+            return null;
+          }
+        });
       const cocktailsData = await Promise.all(cocktailsPromises);
       setFeaturedCocktails(
-        cocktailsData.map((d) => d.drinks?.[0]).filter(Boolean)
+        cocktailsData.map((d) => d?.drinks?.[0]).filter(Boolean)
       );
     } catch (error) {
       console.error("Error loading home data:", error);
-      // You might want to show an error message to user
+      setTrendingRecipes([]);
+      setFeaturedCocktails([]);
     } finally {
       setLoading(false);
     }
@@ -135,7 +153,7 @@ const HomeScreen = ({ navigation }) => {
           </View>
           <TouchableOpacity
             style={styles.profileButton}
-            onPress={() => navigation.navigate("Profile")}
+            onPress={() => navigation.navigate("ProfileTab")}
           >
             <Text style={styles.profileIcon}>👤</Text>
           </TouchableOpacity>
@@ -161,13 +179,13 @@ const HomeScreen = ({ navigation }) => {
             emoji="🍳"
             label="Recipes"
             color="#FF6B6B20"
-            onPress={() => navigation.navigate("Recipes")}
+            onPress={() => navigation.navigate("ExploreTab")}
           />
           <CategoryButton
             emoji="🍹"
             label="Cocktails"
             color="#4ECDC420"
-            onPress={() => navigation.navigate("Cocktails")}
+            onPress={() => navigation.navigate("ExploreTab")}
           />
           <CategoryButton
             emoji="📈"
@@ -187,7 +205,7 @@ const HomeScreen = ({ navigation }) => {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>🔥 Trending Recipes</Text>
-            <TouchableOpacity onPress={() => navigation.navigate("Recipes")}>
+            <TouchableOpacity onPress={() => navigation.navigate("ExploreTab")}>
               <Text style={styles.seeAll}>See All →</Text>
             </TouchableOpacity>
           </View>
@@ -210,7 +228,7 @@ const HomeScreen = ({ navigation }) => {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>🍹 Featured Cocktails</Text>
-            <TouchableOpacity onPress={() => navigation.navigate("Cocktails")}>
+            <TouchableOpacity onPress={() => navigation.navigate("ExploreTab")}>
               <Text style={styles.seeAll}>See All →</Text>
             </TouchableOpacity>
           </View>
@@ -233,7 +251,9 @@ const HomeScreen = ({ navigation }) => {
         <View style={styles.bannerContainer}>
           <TouchableOpacity
             style={styles.banner}
-            onPress={() => navigation.navigate("SearchByIngredients")}
+            onPress={() => navigation.navigate("ExploreTab", { 
+              initialQuery: "ingredients" 
+            })}
             activeOpacity={0.8}
           >
             <Text style={styles.bannerTitle}>Cook with what you have! 🥘</Text>

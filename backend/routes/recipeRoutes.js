@@ -21,22 +21,23 @@ router.get("/search", async (req, res) => {
   }
 });
 
-// Get recipe by ID
-router.get("/:id", async (req, res) => {
+// Get random recipes (must be before /:id route)
+router.get("/random", async (req, res) => {
   try {
-    const { id } = req.params;
-    const data = await spoonacularService.getRecipeById(id);
+    const { number, tags } = req.query;
+    const numRecipes = number ? parseInt(number, 10) : 10;
+    const data = await spoonacularService.getRandomRecipes(numRecipes, tags);
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// Get random recipes
-router.get("/random", async (req, res) => {
+// Get recipe by ID (must be after specific routes)
+router.get("/:id", async (req, res) => {
   try {
-    const { number, tags } = req.query;
-    const data = await spoonacularService.getRandomRecipes(number || 10, tags);
+    const { id } = req.params;
+    const data = await spoonacularService.getRecipeById(id);
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: error.message });
