@@ -15,6 +15,8 @@ import ProfileScreen from "../screens/ProfileScreen";
 import RecipeDetailScreen from "../screens/RecipeDetailScreen";
 import RecipeDetailFullScreen from "../screens/RecipeDetailFullScreen";
 import CocktailDetailScreen from "../screens/CocktailDetailScreen";
+import CookingModeScreen from "../screens/CookingModeScreen";
+
 import { colors } from "../styles/theme";
 
 const Stack = createStackNavigator();
@@ -133,6 +135,14 @@ const AppNavigator = () => {
           component={CocktailDetailScreen}
           options={{
             presentation: "card",
+          }}
+        />
+        <Stack.Screen
+          name="CookingMode"
+          component={CookingModeScreen}
+          options={{
+            presentation: "card",
+            headerShown: false,
           }}
         />
       </Stack.Navigator>

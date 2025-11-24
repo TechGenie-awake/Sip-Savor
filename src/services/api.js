@@ -13,7 +13,7 @@ const getBaseURL = () => {
   // return 'http://10.0.2.2:3000/api';
 
   // Physical device (replace with your computer's IP)
-  return 'http://192.168.1.100:3000/api';
+  return "http://192.168.128.144:3000/api";
 
   // Production
   // return 'https://your-backend.railway.app/api';
