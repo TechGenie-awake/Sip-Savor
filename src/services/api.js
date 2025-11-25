@@ -7,13 +7,13 @@ const getBaseURL = () => {
   // For development, you can switch between these:
 
   // Local testing (iOS simulator)
-  // return 'http://localhost:3000/api';
+  return 'http://localhost:3000/api';
 
   // Android emulator
   // return 'http://10.0.2.2:3000/api';
 
   // Physical device (replace with your computer's IP)
-  return "http://192.168.128.144:3000/api";
+  // return "http://192.168.128.144:3000/api";
 
   // Production
   // return 'https://your-backend.railway.app/api';
@@ -23,7 +23,7 @@ const API_URL = getBaseURL();
 
 // Generic fetch wrapper with error handling and timeout
 const apiRequest = async (endpoint, options = {}) => {
-  const timeout = 10000; // 10 seconds timeout
+  const timeout = 30000; // 30 seconds timeout
   
   try {
     // Create abort controller for timeout

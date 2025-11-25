@@ -18,6 +18,8 @@ import CocktailDetailScreen from "../screens/CocktailDetailScreen";
 import CookingModeScreen from "../screens/CookingModeScreen";
 
 import { colors } from "../styles/theme";
+import { AuthProvider, AuthContext } from "../context/AuthContext";
+import { ActivityIndicator, View } from "react-native";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -92,61 +94,73 @@ const TabNavigator = () => {
   );
 };
 
-// Main Stack Navigator
-const AppNavigator = () => {
+// Root Navigator Component to handle Auth State
+const RootNavigator = () => {
+  const { user, isLoading } = React.useContext(AuthContext);
+
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" color={colors.primary.main} />
+      </View>
+    );
+  }
+
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="Onboarding"
         screenOptions={{
           headerShown: false,
           gestureEnabled: true,
           gestureDirection: "horizontal",
         }}
       >
-        {/* Onboarding & Auth Screens */}
-        <Stack.Screen
-          name="Onboarding"
-          component={OnboardingScreen}
-          options={{ animationEnabled: false }}
-        />
-        <Stack.Screen name="Auth" component={AuthScreen} />
-
-        {/* Main App with Bottom Tabs */}
-        <Stack.Screen name="Main" component={TabNavigator} />
-
-        {/* Detail Screens (Modal style) */}
-        <Stack.Screen
-          name="RecipeDetail"
-          component={RecipeDetailScreen}
-          options={{
-            presentation: "card",
-          }}
-        />
-        <Stack.Screen
-          name="RecipeDetailFull"
-          component={RecipeDetailFullScreen}
-          options={{
-            presentation: "card",
-          }}
-        />
-        <Stack.Screen
-          name="CocktailDetail"
-          component={CocktailDetailScreen}
-          options={{
-            presentation: "card",
-          }}
-        />
-        <Stack.Screen
-          name="CookingMode"
-          component={CookingModeScreen}
-          options={{
-            presentation: "card",
-            headerShown: false,
-          }}
-        />
+        {!user ? (
+          // Auth Stack
+          <>
+            <Stack.Screen
+              name="Onboarding"
+              component={OnboardingScreen}
+              options={{ animationEnabled: false }}
+            />
+            <Stack.Screen name="Auth" component={AuthScreen} />
+          </>
+        ) : (
+          // Main App Stack
+          <>
+            <Stack.Screen name="Main" component={TabNavigator} />
+            <Stack.Screen
+              name="RecipeDetail"
+              component={RecipeDetailScreen}
+              options={{ presentation: "card" }}
+            />
+            <Stack.Screen
+              name="RecipeDetailFull"
+              component={RecipeDetailFullScreen}
+              options={{ presentation: "card" }}
+            />
+            <Stack.Screen
+              name="CocktailDetail"
+              component={CocktailDetailScreen}
+              options={{ presentation: "card" }}
+            />
+            <Stack.Screen
+              name="CookingMode"
+              component={CookingModeScreen}
+              options={{ presentation: "card", headerShown: false }}
+            />
+          </>
+        )}
       </Stack.Navigator>
     </NavigationContainer>
+  );
+};
+
+const AppNavigator = () => {
+  return (
+    <AuthProvider>
+      <RootNavigator />
+    </AuthProvider>
   );
 };
 

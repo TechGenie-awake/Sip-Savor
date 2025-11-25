@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useContext } from "react";
 import {
   View,
   Text,
@@ -12,6 +12,8 @@ import {
 } from "react-native";
 import { VideoView, useVideoPlayer } from "expo-video";
 import { colors } from "../styles/theme";
+import { AuthContext } from "../context/AuthContext";
+import { ActivityIndicator } from "react-native";
 
 const AuthScreen = ({ navigation }) => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -19,6 +21,8 @@ const AuthScreen = ({ navigation }) => {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [videoError, setVideoError] = useState(false);
+  const [error, setError] = useState("");
+  const { login, register, isLoading } = useContext(AuthContext);
 
   const videoSource = require("../assets/videos/cooking-intro.mp4");
   const player = useVideoPlayer(videoSource, (player) => {
@@ -34,13 +38,25 @@ const AuthScreen = ({ navigation }) => {
     }
   }, [player]);
 
-  const handleAuth = () => {
+  const handleAuth = async () => {
     if (!email || !password || (isSignUp && !name)) {
-      alert("Please fill in all fields");
+      setError("Please fill in all fields");
       return;
     }
-    console.log(isSignUp ? "Signing up..." : "Signing in...");
-    navigation.replace("Main");
+    
+    setError("");
+    let result;
+    
+    if (isSignUp) {
+      result = await register(name, email, password);
+    } else {
+      result = await login(email, password);
+    }
+
+    if (!result.success) {
+      setError(result.error || "Authentication failed");
+    }
+    // Navigation is handled by AppNavigator based on user state
   };
 
   const handleSkip = () => {
@@ -85,6 +101,7 @@ const AuthScreen = ({ navigation }) => {
 
           {/* Form Section */}
           <View style={styles.formSection}>
+            {error ? <Text style={styles.errorText}>{error}</Text> : null}
             {isSignUp && (
               <View style={styles.inputContainer}>
                 <Text style={styles.label}>Name</Text>
@@ -137,10 +154,15 @@ const AuthScreen = ({ navigation }) => {
               style={styles.primaryButton}
               onPress={handleAuth}
               activeOpacity={0.8}
+              disabled={isLoading}
             >
-              <Text style={styles.primaryButtonText}>
-                {isSignUp ? "Sign Up" : "Login"}
-              </Text>
+              {isLoading ? (
+                <ActivityIndicator color="#000" />
+              ) : (
+                <Text style={styles.primaryButtonText}>
+                  {isSignUp ? "Sign Up" : "Login"}
+                </Text>
+              )}
             </TouchableOpacity>
 
             {/* Secondary Button */}
@@ -333,6 +355,13 @@ const styles = StyleSheet.create({
   guestButtonText: {
     color: colors.text.secondary,
     fontSize: 15,
+    fontWeight: "600",
+  },
+  errorText: {
+    color: "#FF6B6B",
+    textAlign: "center",
+    marginBottom: 10,
+    fontSize: 14,
     fontWeight: "600",
   },
 });

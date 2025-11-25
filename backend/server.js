@@ -13,10 +13,12 @@ app.use(express.urlencoded({ extended: true }));
 // Import routes
 const recipeRoutes = require("./routes/recipeRoutes");
 const cocktailRoutes = require("./routes/cocktailRoutes");
+const authRoutes = require("./routes/authRoutes");
 
 // Use routes
 app.use("/api/recipes", recipeRoutes);
 app.use("/api/cocktails", cocktailRoutes);
+app.use("/api/auth", authRoutes);
 
 // Health check
 app.get("/api/health", (req, res) => {

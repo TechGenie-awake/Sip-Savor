@@ -10,12 +10,14 @@ import {
   Image,
   ActivityIndicator,
   SafeAreaView,
+  Dimensions,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+
+const { width } = Dimensions.get("window");
+const CARD_WIDTH = (width - 60) / 2; // 2 columns with proper spacing
 
 const API_URL = "http://localhost:3000/api";
-// For Android emulator, use: http://10.0.2.2:3000/api
-// For iOS simulator, use: http://localhost:3000/api
-// For physical device, use: http://YOUR_IP:3000/api
 
 const ExploreScreen = ({ navigation, route }) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -23,6 +25,63 @@ const ExploreScreen = ({ navigation, route }) => {
   const [cocktails, setCocktails] = useState([]);
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  
+  // Default content (trending/popular)
+  const [trendingRecipes, setTrendingRecipes] = useState([]);
+  const [popularCocktails, setPopularCocktails] = useState([]);
+  const [loadingTrending, setLoadingTrending] = useState(true);
+
+  // Categories for quick access
+  const categories = [
+    { name: "Breakfast", emoji: "🍳", query: "breakfast" },
+    { name: "Lunch", emoji: "🥗", query: "lunch" },
+    { name: "Dinner", emoji: "🍽️", query: "dinner" },
+    { name: "Dessert", emoji: "🍰", query: "dessert" },
+    { name: "Vegan", emoji: "🌱", query: "vegan" },
+    { name: "Cocktails", emoji: "🍹", query: "cocktail" },
+    { name: "Italian", emoji: "🍝", query: "italian" },
+    { name: "Asian", emoji: "🍜", query: "asian" },
+  ];
+
+  // Load trending content on mount
+  useEffect(() => {
+    loadTrendingContent();
+  }, []);
+
+  const loadTrendingContent = async () => {
+    try {
+      setLoadingTrending(true);
+
+      // Fetch trending recipes and popular cocktails
+      const [recipesRes, cocktailsPromises] = await Promise.all([
+        fetch(`${API_URL}/recipes/random?number=8`).catch(() => ({ ok: false })),
+        Promise.all(
+          Array(8)
+            .fill()
+            .map(() =>
+              fetch(`${API_URL}/cocktails/random`).catch(() => ({ ok: false }))
+            )
+        ),
+      ]);
+
+      if (recipesRes.ok) {
+        const recipesData = await recipesRes.json();
+        setTrendingRecipes(recipesData.recipes || []);
+      }
+
+      const cocktailsData = await Promise.all(
+        cocktailsPromises.map((res) => (res.ok ? res.json() : null))
+      );
+      const cocktails = cocktailsData
+        .map((d) => d?.drinks?.[0])
+        .filter(Boolean);
+      setPopularCocktails(cocktails);
+    } catch (error) {
+      console.error("Error loading trending content:", error);
+    } finally {
+      setLoadingTrending(false);
+    }
+  };
 
   const performSearch = React.useCallback(async (query) => {
     if (!query.trim()) {
@@ -36,14 +95,13 @@ const ExploreScreen = ({ navigation, route }) => {
     setHasSearched(true);
 
     try {
-      // Search recipes and cocktails in parallel
       const [recipesRes, cocktailsRes] = await Promise.all([
-        fetch(`${API_URL}/recipes/search?query=${encodeURIComponent(query)}&number=10`).catch(
-          () => ({ ok: false })
-        ),
-        fetch(`${API_URL}/cocktails/search?name=${encodeURIComponent(query)}`).catch(
-          () => ({ ok: false })
-        ),
+        fetch(
+          `${API_URL}/recipes/search?query=${encodeURIComponent(query)}&number=12`
+        ).catch(() => ({ ok: false })),
+        fetch(
+          `${API_URL}/cocktails/search?name=${encodeURIComponent(query)}`
+        ).catch(() => ({ ok: false })),
       ]);
 
       if (recipesRes.ok) {
@@ -68,15 +126,12 @@ const ExploreScreen = ({ navigation, route }) => {
     }
   }, []);
 
-  // Get initial query from route params (when navigating from HomeScreen)
-  // Use useFocusEffect to handle params when screen comes into focus
   useFocusEffect(
     React.useCallback(() => {
       if (route?.params?.query) {
         const query = route.params.query;
         setSearchQuery(query);
         performSearch(query);
-        // Clear params after using them to avoid re-searching on every focus
         navigation.setParams({ query: undefined });
       }
     }, [route?.params?.query, performSearch, navigation])
@@ -84,6 +139,18 @@ const ExploreScreen = ({ navigation, route }) => {
 
   const handleSearch = () => {
     performSearch(searchQuery);
+  };
+
+  const handleCategoryPress = (query) => {
+    setSearchQuery(query);
+    performSearch(query);
+  };
+
+  const clearSearch = () => {
+    setSearchQuery("");
+    setRecipes([]);
+    setCocktails([]);
+    setHasSearched(false);
   };
 
   const navigateToRecipe = (recipeId) => {
@@ -113,9 +180,6 @@ const ExploreScreen = ({ navigation, route }) => {
           <Text style={styles.cardMetaText}>
             ⏱️ {item.readyInMinutes || 30} min
           </Text>
-          <Text style={styles.cardMetaText}>
-            🍽️ {item.servings || 4} servings
-          </Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -141,12 +205,31 @@ const ExploreScreen = ({ navigation, route }) => {
     </TouchableOpacity>
   );
 
+  const CategoryChip = ({ category }) => (
+    <TouchableOpacity
+      style={styles.categoryChip}
+      onPress={() => handleCategoryPress(category.query)}
+      activeOpacity={0.7}
+    >
+      <Text style={styles.categoryEmoji}>{category.emoji}</Text>
+      <Text style={styles.categoryName}>{category.name}</Text>
+    </TouchableOpacity>
+  );
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Explore</Text>
+          <Text style={styles.headerSubtitle}>
+            Discover recipes & cocktails
+          </Text>
+        </View>
+
         {/* Search Bar */}
         <View style={styles.searchContainer}>
-          <Text style={styles.searchIcon}>🔍</Text>
+          <Ionicons name="search" size={20} color="#999" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
             placeholder="Search recipes or cocktails..."
@@ -155,8 +238,12 @@ const ExploreScreen = ({ navigation, route }) => {
             onChangeText={setSearchQuery}
             onSubmitEditing={handleSearch}
             returnKeyType="search"
-            autoFocus={!route?.params?.query}
           />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={clearSearch} style={styles.clearButton}>
+              <Ionicons name="close-circle" size={20} color="#999" />
+            </TouchableOpacity>
+          )}
           <TouchableOpacity
             style={styles.searchButton}
             onPress={handleSearch}
@@ -172,14 +259,23 @@ const ExploreScreen = ({ navigation, route }) => {
             <Text style={styles.loadingText}>Searching...</Text>
           </View>
         ) : hasSearched ? (
+          // Search Results
           <ScrollView
             style={styles.resultsContainer}
             showsVerticalScrollIndicator={false}
           >
+            {/* Back to Explore Button */}
+            <TouchableOpacity style={styles.backButton} onPress={clearSearch}>
+              <Ionicons name="arrow-back" size={20} color="#FF6B6B" />
+              <Text style={styles.backButtonText}>Back to Explore</Text>
+            </TouchableOpacity>
+
             {/* Recipes Section */}
             {recipes.length > 0 && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>🍳 Recipes ({recipes.length})</Text>
+                <Text style={styles.sectionTitle}>
+                  🍳 Recipes ({recipes.length})
+                </Text>
                 <View style={styles.resultsGrid}>
                   {recipes.map((recipe, index) => (
                     <RecipeCard key={recipe.id || index} item={recipe} />
@@ -191,7 +287,9 @@ const ExploreScreen = ({ navigation, route }) => {
             {/* Cocktails Section */}
             {cocktails.length > 0 && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>🍹 Cocktails ({cocktails.length})</Text>
+                <Text style={styles.sectionTitle}>
+                  🍹 Cocktails ({cocktails.length})
+                </Text>
                 <View style={styles.resultsGrid}>
                   {cocktails.map((cocktail, index) => (
                     <CocktailCard key={cocktail.idDrink || index} item={cocktail} />
@@ -203,7 +301,7 @@ const ExploreScreen = ({ navigation, route }) => {
             {/* No Results */}
             {recipes.length === 0 && cocktails.length === 0 && (
               <View style={styles.noResultsContainer}>
-                <Text style={styles.noResultsIcon}>🔍</Text>
+                <Ionicons name="search-outline" size={64} color="#E0E0E0" />
                 <Text style={styles.noResultsText}>No results found</Text>
                 <Text style={styles.noResultsSubtext}>
                   Try searching for something else
@@ -212,13 +310,68 @@ const ExploreScreen = ({ navigation, route }) => {
             )}
           </ScrollView>
         ) : (
-          <View style={styles.emptyStateContainer}>
-            <Text style={styles.emptyStateIcon}>🔍</Text>
-            <Text style={styles.emptyStateText}>Start searching for recipes and cocktails</Text>
-            <Text style={styles.emptyStateSubtext}>
-              Enter a search term above to find what you're looking for
-            </Text>
-          </View>
+          // Default Explore Content
+          <ScrollView
+            style={styles.resultsContainer}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Categories */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>🎯 Quick Search</Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.categoriesScroll}
+              >
+                {categories.map((category, index) => (
+                  <CategoryChip key={index} category={category} />
+                ))}
+              </ScrollView>
+            </View>
+
+            {loadingTrending ? (
+              <View style={styles.trendingLoadingContainer}>
+                <ActivityIndicator size="large" color="#FF6B6B" />
+                <Text style={styles.loadingText}>Loading trending content...</Text>
+              </View>
+            ) : (
+              <>
+                {/* Trending Recipes */}
+                {trendingRecipes.length > 0 && (
+                  <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>
+                      🔥 Trending Recipes
+                    </Text>
+                    <View style={styles.resultsGrid}>
+                      {trendingRecipes.map((recipe, index) => (
+                        <RecipeCard key={recipe.id || index} item={recipe} />
+                      ))}
+                    </View>
+                  </View>
+                )}
+
+                {/* Popular Cocktails */}
+                {popularCocktails.length > 0 && (
+                  <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>
+                      🍹 Popular Cocktails
+                    </Text>
+                    <View style={styles.resultsGrid}>
+                      {popularCocktails.map((cocktail, index) => (
+                        <CocktailCard
+                          key={cocktail.idDrink || index}
+                          item={cocktail}
+                        />
+                      ))}
+                    </View>
+                  </View>
+                )}
+              </>
+            )}
+
+            {/* Bottom Spacing */}
+            <View style={{ height: 40 }} />
+          </ScrollView>
         )}
       </View>
     </SafeAreaView>
@@ -234,12 +387,26 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F8F9FA",
   },
+  header: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 12,
+  },
+  headerTitle: {
+    fontSize: 32,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 4,
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: "#666",
+  },
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#FFF",
     marginHorizontal: 20,
-    marginTop: 20,
     marginBottom: 20,
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -251,7 +418,6 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   searchIcon: {
-    fontSize: 20,
     marginRight: 12,
   },
   searchInput: {
@@ -259,12 +425,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#333",
   },
+  clearButton: {
+    padding: 4,
+    marginRight: 8,
+  },
   searchButton: {
     paddingHorizontal: 16,
     paddingVertical: 8,
     backgroundColor: "#FF6B6B",
     borderRadius: 8,
-    marginLeft: 8,
   },
   searchButtonText: {
     color: "#FFF",
@@ -273,6 +442,11 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  trendingLoadingContainer: {
+    paddingVertical: 60,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -285,6 +459,18 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
   },
+  backButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 12,
+    marginBottom: 16,
+  },
+  backButtonText: {
+    fontSize: 16,
+    color: "#FF6B6B",
+    fontWeight: "600",
+    marginLeft: 8,
+  },
   section: {
     marginBottom: 32,
   },
@@ -294,13 +480,38 @@ const styles = StyleSheet.create({
     color: "#333",
     marginBottom: 16,
   },
+  categoriesScroll: {
+    gap: 12,
+  },
+  categoryChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFF",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 24,
+    gap: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  categoryEmoji: {
+    fontSize: 20,
+  },
+  categoryName: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#333",
+  },
   resultsGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
   },
   card: {
-    width: "48%",
+    width: CARD_WIDTH,
     backgroundColor: "#FFF",
     borderRadius: 16,
     overflow: "hidden",
@@ -320,10 +531,11 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   cardTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "bold",
     color: "#333",
-    marginBottom: 8,
+    marginBottom: 6,
+    lineHeight: 20,
   },
   cardMeta: {
     flexDirection: "row",
@@ -339,39 +551,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 60,
   },
-  noResultsIcon: {
-    fontSize: 64,
-    marginBottom: 16,
-  },
   noResultsText: {
     fontSize: 20,
     fontWeight: "bold",
     color: "#333",
+    marginTop: 16,
     marginBottom: 8,
   },
   noResultsSubtext: {
-    fontSize: 14,
-    color: "#666",
-    textAlign: "center",
-  },
-  emptyStateContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 40,
-  },
-  emptyStateIcon: {
-    fontSize: 64,
-    marginBottom: 16,
-  },
-  emptyStateText: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 8,
-    textAlign: "center",
-  },
-  emptyStateSubtext: {
     fontSize: 14,
     color: "#666",
     textAlign: "center",
