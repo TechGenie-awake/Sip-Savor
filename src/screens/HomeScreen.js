@@ -12,14 +12,87 @@ import {
   SafeAreaView,
 } from "react-native";
 
+import { recipeAPI, cocktailAPI } from "../services/api";
+
+
+
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = width * 0.7;
 
-// Replace with your actual backend URL
-const API_URL = "http://localhost:3000/api";
-// For Android emulator, use: http://10.0.2.2:3000/api
-// For iOS simulator, use: http://localhost:3000/api
-// For physical device, use: http://YOUR_IP:3000/api
+const FALLBACK_COCKTAILS = [
+  {
+    idDrink: "11060",
+    strDrink: "Margarita",
+    strDrinkThumb: "https://www.thecocktaildb.com/images/media/drink/5n43dt1582476043.jpg",
+    strCategory: "Ordinary Drink",
+  },
+  {
+    idDrink: "11118",
+    strDrink: "Blue Margarita",
+    strDrinkThumb: "https://www.thecocktaildb.com/images/media/drink/bry4qe1582751040.jpg",
+    strCategory: "Ordinary Drink",
+  },
+  {
+    idDrink: "17216",
+    strDrink: "Tommy's Margarita",
+    strDrinkThumb: "https://www.thecocktaildb.com/images/media/drink/loezxn1504373874.jpg",
+    strCategory: "Ordinary Drink",
+  },
+  {
+    idDrink: "16100",
+    strDrink: "Whitecap Margarita",
+    strDrinkThumb: "https://www.thecocktaildb.com/images/media/drink/srpxxp1441209622.jpg",
+    strCategory: "Other / Unknown",
+  },
+  {
+    idDrink: "17196",
+    strDrink: "Cosmopolitan",
+    strDrinkThumb: "https://www.thecocktaildb.com/images/media/drink/kpsajh1643797264.jpg",
+    strCategory: "Cocktail",
+  },
+  {
+    idDrink: "11690",
+    strDrink: "Mai Tai",
+    strDrinkThumb: "https://www.thecocktaildb.com/images/media/drink/twyrrp1439907470.jpg",
+    strCategory: "Ordinary Drink",
+  },
+  {
+    idDrink: "11007",
+    strDrink: "Margarita",
+    strDrinkThumb: "https://www.thecocktaildb.com/images/media/drink/5n43dt1582476043.jpg",
+    strCategory: "Ordinary Drink",
+  },
+  {
+    idDrink: "11000",
+    strDrink: "Mojito",
+    strDrinkThumb: "https://www.thecocktaildb.com/images/media/drink/metwgh1606770327.jpg",
+    strCategory: "Cocktail",
+  },
+  {
+    idDrink: "11008",
+    strDrink: "Manhattan",
+    strDrinkThumb: "https://www.thecocktaildb.com/images/media/drink/yk70e61606771240.jpg",
+    strCategory: "Cocktail",
+  },
+  {
+    idDrink: "11009",
+    strDrink: "Moscow Mule",
+    strDrinkThumb: "https://www.thecocktaildb.com/images/media/drink/3pylqc1504370559.jpg",
+    strCategory: "Punch / Party Drink",
+  },
+  {
+    idDrink: "11004",
+    strDrink: "Whiskey Sour",
+    strDrinkThumb: "https://www.thecocktaildb.com/images/media/drink/hbkfsh1589574990.jpg",
+    strCategory: "Ordinary Drink",
+  },
+  {
+    idDrink: "11002",
+    strDrink: "Long Island Tea",
+    strDrinkThumb: "https://www.thecocktaildb.com/images/media/drink/nkwr4c1606770558.jpg",
+    strCategory: "Ordinary Drink",
+  }
+];
 
 const HomeScreen = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -36,35 +109,37 @@ const HomeScreen = ({ navigation }) => {
       setLoading(true);
 
       // Fetch random recipes
-      const recipesRes = await fetch(`${API_URL}/recipes/random?number=6`);
-      if (!recipesRes.ok) {
-        const errorText = await recipesRes.text();
-        console.error("Recipes API error:", recipesRes.status, errorText);
-        setTrendingRecipes([]);
+      const recipesRes = await recipeAPI.getRandom(6);
+      if (recipesRes.success) {
+        setTrendingRecipes(recipesRes.data.recipes || []);
       } else {
-        const recipesData = await recipesRes.json();
-        setTrendingRecipes(recipesData.recipes || []);
+        console.error("Recipes API error:", recipesRes.error);
+        setTrendingRecipes([]);
       }
 
       // Fetch random cocktails (making 6 separate requests)
       const cocktailsPromises = Array(6)
         .fill()
         .map(async () => {
-          try {
-            const res = await fetch(`${API_URL}/cocktails/random`);
-            if (res.ok) {
-              return await res.json();
-            }
-            return null;
-          } catch (err) {
-            console.error("Cocktail fetch error:", err);
-            return null;
+          const res = await cocktailAPI.getRandom();
+          if (res.success) {
+            return res.data;
           }
+          console.error("Cocktail API failed:", res.error);
+          return null;
         });
+      
       const cocktailsData = await Promise.all(cocktailsPromises);
-      setFeaturedCocktails(
-        cocktailsData.map((d) => d?.drinks?.[0]).filter(Boolean)
-      );
+      const validCocktails = cocktailsData.map((d) => d?.drinks?.[0]).filter(Boolean);
+      
+      if (validCocktails.length > 0) {
+        setFeaturedCocktails(validCocktails);
+      } else {
+        console.log("Using fallback cocktails");
+        // Shuffle and pick 6 random cocktails from fallback list
+        const shuffled = [...FALLBACK_COCKTAILS].sort(() => 0.5 - Math.random());
+        setFeaturedCocktails(shuffled.slice(0, 6));
+      }
     } catch (error) {
       console.error("Error loading home data:", error);
       setTrendingRecipes([]);
@@ -99,9 +174,12 @@ const HomeScreen = ({ navigation }) => {
       activeOpacity={0.7}
     >
       <Image
-        source={{ uri: item.image || item.strDrinkThumb }}
+        source={{ 
+          uri: item.image || item.strDrinkThumb || "https://www.thecocktaildb.com/images/media/drink/vrwquq1478252802.jpg" 
+        }}
         style={styles.cardImage}
         resizeMode="cover"
+        defaultSource={{ uri: "https://www.thecocktaildb.com/images/media/drink/vrwquq1478252802.jpg" }}
       />
       <View style={styles.cardContent}>
         <Text style={styles.cardTitle} numberOfLines={2}>

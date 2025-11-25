@@ -14,10 +14,39 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
+import { recipeAPI, cocktailAPI } from "../services/api";
+
+
+
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = (width - 60) / 2; // 2 columns with proper spacing
 
-const API_URL = "http://localhost:3000/api";
+const FALLBACK_COCKTAILS = [
+  {
+    idDrink: "11060",
+    strDrink: "Margarita",
+    strDrinkThumb: "https://www.thecocktaildb.com/images/media/drink/5n43dt1582476043.jpg",
+    strCategory: "Ordinary Drink",
+  },
+  {
+    idDrink: "11118",
+    strDrink: "Blue Margarita",
+    strDrinkThumb: "https://www.thecocktaildb.com/images/media/drink/bry4qe1582751040.jpg",
+    strCategory: "Ordinary Drink",
+  },
+  {
+    idDrink: "17196",
+    strDrink: "Cosmopolitan",
+    strDrinkThumb: "https://www.thecocktaildb.com/images/media/drink/kpsajh1643797264.jpg",
+    strCategory: "Cocktail",
+  },
+  {
+    idDrink: "11690",
+    strDrink: "Mai Tai",
+    strDrinkThumb: "https://www.thecocktaildb.com/images/media/drink/twyrrp1439907470.jpg",
+    strCategory: "Ordinary Drink",
+  },
+];
 
 const ExploreScreen = ({ navigation, route }) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -54,28 +83,27 @@ const ExploreScreen = ({ navigation, route }) => {
 
       // Fetch trending recipes and popular cocktails
       const [recipesRes, cocktailsPromises] = await Promise.all([
-        fetch(`${API_URL}/recipes/random?number=8`).catch(() => ({ ok: false })),
+        recipeAPI.getRandom(8),
         Promise.all(
           Array(8)
             .fill()
-            .map(() =>
-              fetch(`${API_URL}/cocktails/random`).catch(() => ({ ok: false }))
-            )
+            .map(() => cocktailAPI.getRandom())
         ),
       ]);
 
-      if (recipesRes.ok) {
-        const recipesData = await recipesRes.json();
-        setTrendingRecipes(recipesData.recipes || []);
+      if (recipesRes.success) {
+        setTrendingRecipes(recipesRes.data.recipes || []);
       }
 
-      const cocktailsData = await Promise.all(
-        cocktailsPromises.map((res) => (res.ok ? res.json() : null))
-      );
-      const cocktails = cocktailsData
-        .map((d) => d?.drinks?.[0])
+      const cocktails = cocktailsPromises
+        .map((res) => (res.success ? res.data?.drinks?.[0] : null))
         .filter(Boolean);
-      setPopularCocktails(cocktails);
+      
+      if (cocktails.length > 0) {
+        setPopularCocktails(cocktails);
+      } else {
+        setPopularCocktails(FALLBACK_COCKTAILS);
+      }
     } catch (error) {
       console.error("Error loading trending content:", error);
     } finally {
@@ -96,24 +124,18 @@ const ExploreScreen = ({ navigation, route }) => {
 
     try {
       const [recipesRes, cocktailsRes] = await Promise.all([
-        fetch(
-          `${API_URL}/recipes/search?query=${encodeURIComponent(query)}&number=12`
-        ).catch(() => ({ ok: false })),
-        fetch(
-          `${API_URL}/cocktails/search?name=${encodeURIComponent(query)}`
-        ).catch(() => ({ ok: false })),
+        recipeAPI.search({ query, number: 12 }),
+        cocktailAPI.search(query),
       ]);
 
-      if (recipesRes.ok) {
-        const recipesData = await recipesRes.json();
-        setRecipes(recipesData.results || []);
+      if (recipesRes.success) {
+        setRecipes(recipesRes.data.results || []);
       } else {
         setRecipes([]);
       }
 
-      if (cocktailsRes.ok) {
-        const cocktailsData = await cocktailsRes.json();
-        setCocktails(cocktailsData.drinks || []);
+      if (cocktailsRes.success) {
+        setCocktails(cocktailsRes.data.drinks || []);
       } else {
         setCocktails([]);
       }
