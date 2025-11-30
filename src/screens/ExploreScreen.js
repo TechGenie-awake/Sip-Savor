@@ -12,7 +12,21 @@ import {
   SafeAreaView,
   Dimensions,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { 
+  Search, 
+  XCircle, 
+  ArrowLeft, 
+  Clock, 
+  Martini, 
+  ChefHat, 
+  Salad, 
+  Utensils, 
+  Cake, 
+  Leaf, 
+  Soup, 
+  Target, 
+  Flame 
+} from "lucide-react-native";
 
 import { recipeAPI, cocktailAPI } from "../services/api";
 
@@ -62,14 +76,14 @@ const ExploreScreen = ({ navigation, route }) => {
 
   // Categories for quick access
   const categories = [
-    { name: "Breakfast", emoji: "🍳", query: "breakfast" },
-    { name: "Lunch", emoji: "🥗", query: "lunch" },
-    { name: "Dinner", emoji: "🍽️", query: "dinner" },
-    { name: "Dessert", emoji: "🍰", query: "dessert" },
-    { name: "Vegan", emoji: "🌱", query: "vegan" },
-    { name: "Cocktails", emoji: "🍹", query: "cocktail" },
-    { name: "Italian", emoji: "🍝", query: "italian" },
-    { name: "Asian", emoji: "🍜", query: "asian" },
+    { name: "Breakfast", icon: ChefHat, query: "breakfast" },
+    { name: "Lunch", icon: Salad, query: "lunch" },
+    { name: "Dinner", icon: Utensils, query: "dinner" },
+    { name: "Dessert", icon: Cake, query: "dessert" },
+    { name: "Vegan", icon: Leaf, query: "vegan" },
+    { name: "Cocktails", icon: Martini, query: "cocktail" },
+    { name: "Italian", icon: Utensils, query: "italian" }, // Fallback to Utensils
+    { name: "Asian", icon: Soup, query: "asian" },
   ];
 
   // Load trending content on mount
@@ -199,9 +213,12 @@ const ExploreScreen = ({ navigation, route }) => {
           {item.title}
         </Text>
         <View style={styles.cardMeta}>
-          <Text style={styles.cardMetaText}>
-            ⏱️ {item.readyInMinutes || 30} min
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Clock size={12} color="#666" style={{ marginRight: 4 }} />
+            <Text style={styles.cardMetaText}>
+              {item.readyInMinutes || 30} min
+            </Text>
+          </View>
         </View>
       </View>
     </TouchableOpacity>
@@ -222,21 +239,22 @@ const ExploreScreen = ({ navigation, route }) => {
         <Text style={styles.cardTitle} numberOfLines={2}>
           {item.strDrink}
         </Text>
-        <Text style={styles.cardMetaText}>🍸 {item.strCategory || "Cocktail"}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+          <Martini size={12} color="#666" style={{ marginRight: 4 }} />
+          <Text style={styles.cardMetaText}>{item.strCategory || "Cocktail"}</Text>
+        </View>
       </View>
     </TouchableOpacity>
   );
 
-  const CategoryChip = ({ category }) => (
     <TouchableOpacity
       style={styles.categoryChip}
       onPress={() => handleCategoryPress(category.query)}
       activeOpacity={0.7}
     >
-      <Text style={styles.categoryEmoji}>{category.emoji}</Text>
+      <category.icon size={20} color="#333" />
       <Text style={styles.categoryName}>{category.name}</Text>
     </TouchableOpacity>
-  );
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -251,7 +269,7 @@ const ExploreScreen = ({ navigation, route }) => {
 
         {/* Search Bar */}
         <View style={styles.searchContainer}>
-          <Ionicons name="search" size={20} color="#999" style={styles.searchIcon} />
+          <Search size={20} color="#999" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
             placeholder="Search recipes or cocktails..."
@@ -263,7 +281,7 @@ const ExploreScreen = ({ navigation, route }) => {
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={clearSearch} style={styles.clearButton}>
-              <Ionicons name="close-circle" size={20} color="#999" />
+              <XCircle size={20} color="#999" />
             </TouchableOpacity>
           )}
           <TouchableOpacity
@@ -288,16 +306,19 @@ const ExploreScreen = ({ navigation, route }) => {
           >
             {/* Back to Explore Button */}
             <TouchableOpacity style={styles.backButton} onPress={clearSearch}>
-              <Ionicons name="arrow-back" size={20} color="#FF6B6B" />
+              <ArrowLeft size={20} color="#FF6B6B" />
               <Text style={styles.backButtonText}>Back to Explore</Text>
             </TouchableOpacity>
 
             {/* Recipes Section */}
             {recipes.length > 0 && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>
-                  🍳 Recipes ({recipes.length})
-                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
+                  <ChefHat size={20} color="#333" style={{ marginRight: 8 }} />
+                  <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>
+                    Recipes ({recipes.length})
+                  </Text>
+                </View>
                 <View style={styles.resultsGrid}>
                   {recipes.map((recipe, index) => (
                     <RecipeCard key={recipe.id || index} item={recipe} />
@@ -309,9 +330,12 @@ const ExploreScreen = ({ navigation, route }) => {
             {/* Cocktails Section */}
             {cocktails.length > 0 && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>
-                  🍹 Cocktails ({cocktails.length})
-                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
+                  <Martini size={20} color="#333" style={{ marginRight: 8 }} />
+                  <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>
+                    Cocktails ({cocktails.length})
+                  </Text>
+                </View>
                 <View style={styles.resultsGrid}>
                   {cocktails.map((cocktail, index) => (
                     <CocktailCard key={cocktail.idDrink || index} item={cocktail} />
@@ -323,7 +347,7 @@ const ExploreScreen = ({ navigation, route }) => {
             {/* No Results */}
             {recipes.length === 0 && cocktails.length === 0 && (
               <View style={styles.noResultsContainer}>
-                <Ionicons name="search-outline" size={64} color="#E0E0E0" />
+                <Search size={64} color="#E0E0E0" />
                 <Text style={styles.noResultsText}>No results found</Text>
                 <Text style={styles.noResultsSubtext}>
                   Try searching for something else
@@ -339,7 +363,10 @@ const ExploreScreen = ({ navigation, route }) => {
           >
             {/* Categories */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>🎯 Quick Search</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
+                <Target size={20} color="#333" style={{ marginRight: 8 }} />
+                <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>Quick Search</Text>
+              </View>
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
@@ -361,9 +388,12 @@ const ExploreScreen = ({ navigation, route }) => {
                 {/* Trending Recipes */}
                 {trendingRecipes.length > 0 && (
                   <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>
-                      🔥 Trending Recipes
-                    </Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
+                      <Flame size={20} color="#333" style={{ marginRight: 8 }} />
+                      <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>
+                        Trending Recipes
+                      </Text>
+                    </View>
                     <View style={styles.resultsGrid}>
                       {trendingRecipes.map((recipe, index) => (
                         <RecipeCard key={recipe.id || index} item={recipe} />
@@ -375,9 +405,12 @@ const ExploreScreen = ({ navigation, route }) => {
                 {/* Popular Cocktails */}
                 {popularCocktails.length > 0 && (
                   <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>
-                      🍹 Popular Cocktails
-                    </Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
+                      <Martini size={20} color="#333" style={{ marginRight: 8 }} />
+                      <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>
+                        Popular Cocktails
+                      </Text>
+                    </View>
                     <View style={styles.resultsGrid}>
                       {popularCocktails.map((cocktail, index) => (
                         <CocktailCard

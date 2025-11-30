@@ -7,6 +7,7 @@ import {
   Dimensions,
   StatusBar,
   Alert,
+  ScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons"; // or react-native-vector-icons
 import { activateKeepAwake, deactivateKeepAwake } from "expo-keep-awake";
@@ -16,11 +17,14 @@ const { width, height } = Dimensions.get("window");
 const CookingModeScreen = ({ route, navigation }) => {
   const { recipe } = route.params;
   const steps = recipe.analyzedInstructions?.[0]?.steps || [];
-  
+
   const [currentStep, setCurrentStep] = useState(0);
   const [timer, setTimer] = useState(0);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [showIngredients, setShowIngredients] = useState(false);
+  const [scrollViewHeight, setScrollViewHeight] = useState(0);
+const [contentHeight, setContentHeight] = useState(0);
+const [scrollOffset, setScrollOffset] = useState(0);
 
   useEffect(() => {
     // Keep screen awake during cooking
@@ -83,25 +87,26 @@ const CookingModeScreen = ({ route, navigation }) => {
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+    return `${mins.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")}`;
   };
 
   const exitCookingMode = () => {
-    Alert.alert(
-      "Exit Cooking Mode?",
-      "Are you sure you want to exit?",
-      [
-        { text: "Cancel", style: "cancel" },
-        { text: "Exit", onPress: () => navigation.goBack() },
-      ]
-    );
+    Alert.alert("Exit Cooking Mode?", "Are you sure you want to exit?", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Exit", onPress: () => navigation.goBack() },
+    ]);
   };
 
   if (steps.length === 0) {
     return (
       <View style={styles.container}>
         <Text style={styles.errorText}>No cooking steps available</Text>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.exitBtn}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.exitBtn}
+        >
           <Text style={styles.exitBtnText}>Go Back</Text>
         </TouchableOpacity>
       </View>
@@ -263,24 +268,46 @@ const CookingModeScreen = ({ route, navigation }) => {
 
       {/* Ingredients Overlay */}
       {showIngredients && (
-        <View style={styles.overlay}>
-          <View style={styles.overlayContent}>
-            <View style={styles.overlayHeader}>
-              <Text style={styles.overlayTitle}>All Ingredients</Text>
-              <TouchableOpacity onPress={() => setShowIngredients(false)}>
-                <Ionicons name="close" size={28} color="#333" />
-              </TouchableOpacity>
-            </View>
-            <View style={styles.ingredientsList}>
-              {recipe.extendedIngredients?.map((ing, idx) => (
-                <Text key={idx} style={styles.ingredientItem}>
-                  • {ing.original || ing.name}
-                </Text>
-              ))}
-            </View>
+  <View style={styles.overlay}>
+    <View style={styles.overlayContent}>
+      <View style={styles.overlayHeader}>
+        <Text style={styles.overlayTitle}>All Ingredients</Text>
+        <TouchableOpacity onPress={() => setShowIngredients(false)}>
+          <Ionicons name="close" size={28} color="#333" />
+        </TouchableOpacity>
+      </View>
+      <View style={styles.scrollContainer}>
+        <ScrollView 
+          style={styles.ingredientsList} 
+          showsVerticalScrollIndicator={false}
+          onLayout={(e) => setScrollViewHeight(e.nativeEvent.layout.height)}
+          onContentSizeChange={(width, height) => setContentHeight(height)}
+          onScroll={(e) => setScrollOffset(e.nativeEvent.contentOffset.y)}
+          scrollEventThrottle={16}
+        >
+          {recipe.extendedIngredients?.map((ing, idx) => (
+            <Text key={idx} style={styles.ingredientItem}>
+              • {ing.original || ing.name}
+            </Text>
+          ))}
+        </ScrollView>
+        {contentHeight > scrollViewHeight && (
+          <View style={styles.customScrollbar}>
+            <View 
+              style={[
+                styles.customScrollbarThumb,
+                {
+                  height: `${(scrollViewHeight / contentHeight) * 100}%`,
+                  top: `${(scrollOffset / contentHeight) * 100}%`,
+                }
+              ]} 
+            />
           </View>
-        </View>
-      )}
+        )}
+      </View>
+    </View>
+  </View>
+)}
     </View>
   );
 };
@@ -417,8 +444,8 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   presetBtn: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
     backgroundColor: "#2A2A2A",
     borderRadius: 20,
     borderWidth: 1,
@@ -439,8 +466,8 @@ const styles = StyleSheet.create({
   navButton: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
     backgroundColor: "#FF6B6B",
     borderRadius: 28,
     minWidth: 120,
@@ -510,6 +537,28 @@ const styles = StyleSheet.create({
     color: "#FFF",
     fontSize: 18,
     textAlign: "center",
+  },
+  scrollContainer: {
+    flexDirection: 'row',
+    maxHeight: height * 0.5,
+  },
+  ingredientsList: {
+    flex: 1,
+    paddingRight: 8,
+  },
+  customScrollbar: {
+    width: 6,
+    backgroundColor: '#E0E0E0',
+    borderRadius: 3,
+    marginLeft: 8,
+    position: 'relative',
+  },
+  customScrollbarThumb: {
+    position: 'absolute',
+    width: '100%',
+    backgroundColor: '#FF6B6B',
+    borderRadius: 3,
+    minHeight: 40,
   },
 });
 

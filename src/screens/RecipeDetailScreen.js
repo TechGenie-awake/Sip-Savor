@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import {
   View,
   Text,
@@ -8,19 +8,56 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Share,
+  LayoutAnimation,
+  Platform,
+  UIManager,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { recipeAPI } from "../services/api";
+import { SavedContext } from "../context/SavedContext";
+import {
+  Clock,
+  Users,
+  ChefHat,
+  Heart,
+  Share2,
+  Utensils,
+  Calendar,
+  ChevronDown,
+  ChevronUp,
+  ArrowLeft,
+  Flame,
+  Wheat,
+  Beef,
+  Droplet,
+  CheckCircle,
+  Circle,
+  ShoppingCart,
+  PlayCircle,
+  Bookmark,
+  BookmarkMinus,
+} from "lucide-react-native";
+
+if (
+  Platform.OS === "android" &&
+  UIManager.setLayoutAnimationEnabledExperimental
+) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 const RecipeDetailScreen = ({ route, navigation }) => {
   const { id } = route.params;
+  const { addToSaved, removeFromSaved, isSaved, addToPlanner } =
+    useContext(SavedContext);
   const [recipe, setRecipe] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [isFavorite, setIsFavorite] = useState(false);
   const [servingMultiplier, setServingMultiplier] = useState(1);
   const [checkedIngredients, setCheckedIngredients] = useState({});
   const [completedSteps, setCompletedSteps] = useState({});
+  const [instructionsExpanded, setInstructionsExpanded] = useState(false);
+
+  const isFavorite = isSaved(Number(id));
 
   useEffect(() => {
     loadRecipe();
@@ -41,8 +78,18 @@ const RecipeDetailScreen = ({ route, navigation }) => {
   };
 
   const toggleFavorite = () => {
-    setIsFavorite(!isFavorite);
-    // TODO: Save to favorites in AsyncStorage or backend
+    if (isFavorite) {
+      removeFromSaved(recipe.id);
+    } else {
+      addToSaved(recipe);
+    }
+  };
+
+  const handleAddToPlanner = () => {
+    // For simplicity, adding to "Today"
+    const today = new Date().toISOString();
+    addToPlanner(recipe, today, "Dinner");
+    alert("Added to Planner for Today!");
   };
 
   const handleShare = async () => {
@@ -75,6 +122,11 @@ const RecipeDetailScreen = ({ route, navigation }) => {
       ...prev,
       [stepNumber]: !prev[stepNumber],
     }));
+  };
+
+  const toggleInstructions = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setInstructionsExpanded(!instructionsExpanded);
   };
 
   const getDifficultyColor = (difficulty) => {
@@ -115,7 +167,7 @@ const RecipeDetailScreen = ({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
-      <ScrollView>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Image Header with Gradient */}
         <View style={styles.imageWrapper}>
           <Image source={{ uri: recipe.image }} style={styles.image} />
@@ -129,7 +181,7 @@ const RecipeDetailScreen = ({ route, navigation }) => {
             style={styles.backButton}
             onPress={() => navigation.goBack()}
           >
-            <Text style={styles.backIcon}>←</Text>
+            <ArrowLeft size={24} color="#FFF" />
           </TouchableOpacity>
 
           {/* Floating Action Buttons */}
@@ -138,10 +190,14 @@ const RecipeDetailScreen = ({ route, navigation }) => {
               style={styles.iconButton}
               onPress={toggleFavorite}
             >
-              <Text style={styles.iconText}>{isFavorite ? "❤️" : "🤍"}</Text>
+              <Heart
+                size={24}
+                color={isFavorite ? "#FF6B6B" : "#333"}
+                fill={isFavorite ? "#FF6B6B" : "transparent"}
+              />
             </TouchableOpacity>
             <TouchableOpacity style={styles.iconButton} onPress={handleShare}>
-              <Text style={styles.iconText}>📤</Text>
+              <Share2 size={24} color="#333" />
             </TouchableOpacity>
           </View>
         </View>
@@ -153,12 +209,14 @@ const RecipeDetailScreen = ({ route, navigation }) => {
           {/* Meta Info with Pills */}
           <View style={styles.metaRow}>
             <View style={styles.pill}>
+              <Clock size={14} color="#555" />
               <Text style={styles.pillText}>
-                ⏱ {recipe.readyInMinutes || 30} min
+                {recipe.readyInMinutes || 30} min
               </Text>
             </View>
             <View style={styles.pill}>
-              <Text style={styles.pillText}>🍽 {adjustedServings} servings</Text>
+              <Users size={14} color="#555" />
+              <Text style={styles.pillText}>{adjustedServings} servings</Text>
             </View>
             {recipe.difficulty && (
               <View
@@ -167,6 +225,7 @@ const RecipeDetailScreen = ({ route, navigation }) => {
                   { backgroundColor: getDifficultyColor(recipe.difficulty) },
                 ]}
               >
+                <ChefHat size={14} color="#FFF" />
                 <Text style={styles.pillTextWhite}>
                   {recipe.difficulty || "Medium"}
                 </Text>
@@ -192,24 +251,28 @@ const RecipeDetailScreen = ({ route, navigation }) => {
             <Text style={styles.nutritionTitle}>Nutrition (per serving)</Text>
             <View style={styles.nutritionRow}>
               <View style={styles.nutritionItem}>
+                <Flame size={20} color="#FF6B6B" />
                 <Text style={styles.nutritionValue}>
                   {Math.round(recipe.nutrition.calories || 250)}
                 </Text>
                 <Text style={styles.nutritionLabel}>Calories</Text>
               </View>
               <View style={styles.nutritionItem}>
+                <Beef size={20} color="#FF6B6B" />
                 <Text style={styles.nutritionValue}>
                   {Math.round(recipe.nutrition.protein || 15)}g
                 </Text>
                 <Text style={styles.nutritionLabel}>Protein</Text>
               </View>
               <View style={styles.nutritionItem}>
+                <Wheat size={20} color="#FF6B6B" />
                 <Text style={styles.nutritionValue}>
                   {Math.round(recipe.nutrition.carbs || 30)}g
                 </Text>
                 <Text style={styles.nutritionLabel}>Carbs</Text>
               </View>
               <View style={styles.nutritionItem}>
+                <Droplet size={20} color="#FF6B6B" />
                 <Text style={styles.nutritionValue}>
                   {Math.round(recipe.nutrition.fat || 10)}g
                 </Text>
@@ -251,9 +314,13 @@ const RecipeDetailScreen = ({ route, navigation }) => {
         {/* Ingredients with Checkboxes */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>🧂 Ingredients</Text>
+            <View style={styles.sectionTitleRow}>
+              <Utensils size={20} color="#222" />
+              <Text style={styles.sectionTitle}>Ingredients</Text>
+            </View>
             <TouchableOpacity style={styles.addToListBtn}>
-              <Text style={styles.addToListText}>+ Shopping List</Text>
+              <ShoppingCart size={14} color="#FFF" />
+              <Text style={styles.addToListText}>List</Text>
             </TouchableOpacity>
           </View>
 
@@ -270,7 +337,7 @@ const RecipeDetailScreen = ({ route, navigation }) => {
                 <View
                   style={[styles.checkbox, isChecked && styles.checkboxChecked]}
                 >
-                  {isChecked && <Text style={styles.checkmark}>✓</Text>}
+                  {isChecked && <CheckCircle size={16} color="#FFF" />}
                 </View>
                 <Text
                   style={[
@@ -288,7 +355,10 @@ const RecipeDetailScreen = ({ route, navigation }) => {
         {/* Equipment Needed */}
         {recipe.equipment?.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>🔪 Equipment Needed</Text>
+            <View style={styles.sectionTitleRow}>
+              <ChefHat size={20} color="#222" />
+              <Text style={styles.sectionTitle}>Equipment Needed</Text>
+            </View>
             <View style={styles.equipmentRow}>
               {recipe.equipment.map((item, i) => (
                 <View key={i} style={styles.equipmentItem}>
@@ -299,70 +369,115 @@ const RecipeDetailScreen = ({ route, navigation }) => {
           </View>
         )}
 
-        {/* Instructions with Progress */}
+        {/* Instructions with Collapsible View */}
         {recipe.analyzedInstructions?.length > 0 && (
           <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>📝 Instructions</Text>
-              <Text style={styles.progressText}>
-                {Object.values(completedSteps).filter(Boolean).length}/
-                {recipe.analyzedInstructions[0].steps.length}
-              </Text>
-            </View>
+            <TouchableOpacity
+              style={styles.sectionHeader}
+              onPress={toggleInstructions}
+              activeOpacity={0.7}
+            >
+              <View style={styles.sectionTitleRow}>
+                <CheckCircle size={20} color="#222" />
+                <Text style={styles.sectionTitle}>Instructions</Text>
+              </View>
+              <View style={styles.row}>
+                <Text style={styles.progressText}>
+                  {Object.values(completedSteps).filter(Boolean).length}/
+                  {recipe.analyzedInstructions[0].steps.length}
+                </Text>
+                {instructionsExpanded ? (
+                  <ChevronUp size={20} color="#666" />
+                ) : (
+                  <ChevronDown size={20} color="#666" />
+                )}
+              </View>
+            </TouchableOpacity>
 
-            {recipe.analyzedInstructions[0].steps.map((step) => {
-              const isCompleted = completedSteps[step.number];
+            {instructionsExpanded && (
+              <View style={styles.instructionsContainer}>
+                {recipe.analyzedInstructions[0].steps.map((step) => {
+                  const isCompleted = completedSteps[step.number];
 
-              return (
-                <TouchableOpacity
-                  key={step.number}
-                  style={[styles.stepItem, isCompleted && styles.stepCompleted]}
-                  onPress={() => toggleStep(step.number)}
-                >
-                  <View
-                    style={[
-                      styles.stepNumberCircle,
-                      isCompleted && styles.stepNumberCircleCompleted,
-                    ]}
-                  >
-                    <Text
+                  return (
+                    <TouchableOpacity
+                      key={step.number}
                       style={[
-                        styles.stepNumber,
-                        isCompleted && styles.stepNumberCompleted,
+                        styles.stepItem,
+                        isCompleted && styles.stepCompleted,
                       ]}
+                      onPress={() => toggleStep(step.number)}
                     >
-                      {isCompleted ? "✓" : step.number}
-                    </Text>
-                  </View>
-                  <Text
-                    style={[
-                      styles.stepText,
-                      isCompleted && styles.stepTextCompleted,
-                    ]}
-                  >
-                    {step.step}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
+                      <View
+                        style={[
+                          styles.stepNumberCircle,
+                          isCompleted && styles.stepNumberCircleCompleted,
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.stepNumber,
+                            isCompleted && styles.stepNumberCompleted,
+                          ]}
+                        >
+                          {isCompleted ? "✓" : step.number}
+                        </Text>
+                      </View>
+                      <Text
+                        style={[
+                          styles.stepText,
+                          isCompleted && styles.stepTextCompleted,
+                        ]}
+                      >
+                        {step.step}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            )}
+            {!instructionsExpanded && (
+              <Text style={styles.collapsedHint}>
+                Tap to view {recipe.analyzedInstructions[0].steps.length} steps
+              </Text>
+            )}
           </View>
         )}
 
-        {/* Action Buttons */}
-        <View style={styles.actionButtons}>
-          <TouchableOpacity
-            style={styles.primaryBtn}
-            onPress={() => navigation.navigate("CookingMode", { recipe })}
-          >
-            <Text style={styles.primaryBtnText}>🍳 Start Cooking Mode</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.secondaryBtn}>
-            <Text style={styles.secondaryBtnText}>💾 Save to Collection</Text>
-          </TouchableOpacity>
-        </View>
-
         <View style={{ height: 40 }} />
       </ScrollView>
+      {/* Action Buttons */}
+      <View style={styles.stickyActionBar}>
+      <TouchableOpacity
+        style={styles.stickyButton}
+        onPress={() => navigation.navigate("CookingMode", { recipe })}
+      >
+        <PlayCircle size={20} color="#FFF" />
+        <Text style={styles.stickyButtonText}>Cook</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[styles.stickyButton, styles.stickyButtonPrimary]}
+        onPress={toggleFavorite}
+      >
+        {isFavorite ? (
+          <BookmarkMinus size={20} color="#FFF" />
+        ) : (
+          <Bookmark size={20} color="#FFF" />
+        )}
+        <Text style={styles.stickyButtonText}>
+          {isFavorite ? "Saved" : "Save"}
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.stickyButton}
+        onPress={handleAddToPlanner}
+      >
+        <Calendar size={20} color="#FFF" />
+        <Text style={styles.stickyButtonText}>Plan</Text>
+      </TouchableOpacity>
+    </View>
     </View>
   );
 };
@@ -371,6 +486,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#FFF",
+  },
+  scrollContent: {
+    paddingBottom: 80,
   },
   center: {
     flex: 1,
@@ -427,11 +545,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  backIcon: {
-    color: "#FFF",
-    fontSize: 22,
-    fontWeight: "bold",
-  },
   floatingButtons: {
     position: "absolute",
     top: 40,
@@ -451,9 +564,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
-  },
-  iconText: {
-    fontSize: 20,
   },
   header: {
     paddingHorizontal: 20,
@@ -477,6 +587,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
   },
   pillText: {
     fontSize: 13,
@@ -524,16 +637,16 @@ const styles = StyleSheet.create({
   },
   nutritionItem: {
     alignItems: "center",
+    gap: 4,
   },
   nutritionValue: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "bold",
-    color: "#FF6B6B",
+    color: "#333",
   },
   nutritionLabel: {
     fontSize: 12,
     color: "#666",
-    marginTop: 4,
   },
   summaryCard: {
     paddingHorizontal: 20,
@@ -595,6 +708,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 16,
   },
+  sectionTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
   sectionTitle: {
     fontSize: 22,
     fontWeight: "bold",
@@ -605,6 +723,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
   },
   addToListText: {
     color: "#FFF",
@@ -615,6 +736,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#FF6B6B",
     fontWeight: "600",
+    marginRight: 8,
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   ingredient: {
     flexDirection: "row",
@@ -635,11 +761,6 @@ const styles = StyleSheet.create({
   checkboxChecked: {
     backgroundColor: "#FF6B6B",
     borderColor: "#FF6B6B",
-  },
-  checkmark: {
-    color: "#FFF",
-    fontSize: 14,
-    fontWeight: "bold",
   },
   ingredientText: {
     fontSize: 16,
@@ -664,6 +785,15 @@ const styles = StyleSheet.create({
   equipmentText: {
     fontSize: 14,
     color: "#555",
+  },
+  instructionsContainer: {
+    marginTop: 8,
+  },
+  collapsedHint: {
+    fontSize: 14,
+    color: "#999",
+    fontStyle: "italic",
+    marginTop: -8,
   },
   stepItem: {
     flexDirection: "row",
@@ -705,34 +835,42 @@ const styles = StyleSheet.create({
     color: "#666",
     textDecorationLine: "line-through",
   },
-  actionButtons: {
-    paddingHorizontal: 20,
-    marginTop: 32,
-    gap: 12,
-  },
-  primaryBtn: {
-    backgroundColor: "#FF6B6B",
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: "center",
-  },
-  primaryBtnText: {
-    color: "#FFF",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  secondaryBtn: {
+  stickyActionBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    flexDirection: "row",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    paddingBottom: 20,
     backgroundColor: "#FFF",
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: "center",
-    borderWidth: 2,
-    borderColor: "#FF6B6B",
+    borderTopWidth: 1,
+    borderTopColor: "#E5E5E5",
+    gap: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 8,
   },
-  secondaryBtnText: {
-    color: "#FF6B6B",
-    fontSize: 16,
-    fontWeight: "bold",
+  stickyButton: {
+    flex: 1,
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    backgroundColor: "#2A2A2A",
+    borderRadius: 12,
+    gap: 4,
+  },
+  stickyButtonPrimary: {
+    backgroundColor: "#FF6B6B",
+  },
+  stickyButtonText: {
+    color: "#FFF",
+    fontSize: 12,
+    fontWeight: "600",
   },
 });
 

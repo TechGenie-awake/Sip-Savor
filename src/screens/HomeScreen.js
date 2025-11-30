@@ -11,6 +11,20 @@ import {
   Dimensions,
   SafeAreaView,
 } from "react-native";
+import { 
+  Clock, 
+  Utensils, 
+  Martini, 
+  ChefHat, 
+  TrendingUp, 
+  Sparkles, 
+  Flame, 
+  User, 
+  Search, 
+  Moon, 
+  CookingPot, 
+  ArrowRight 
+} from "lucide-react-native";
 
 import { recipeAPI, cocktailAPI } from "../services/api";
 
@@ -187,25 +201,34 @@ const HomeScreen = ({ navigation }) => {
         </Text>
         {type === "recipe" && (
           <View style={styles.cardMeta}>
-            <Text style={styles.cardMetaText}>
-              ⏱️ {item.readyInMinutes || 30} min
-            </Text>
-            <Text style={styles.cardMetaText}>
-              🍽️ {item.servings || 4} servings
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Clock size={14} color="#666" style={{ marginRight: 4 }} />
+              <Text style={styles.cardMetaText}>
+                {item.readyInMinutes || 30} min
+              </Text>
+            </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Utensils size={14} color="#666" style={{ marginRight: 4 }} />
+              <Text style={styles.cardMetaText}>
+                {item.servings || 4} servings
+              </Text>
+            </View>
           </View>
         )}
         {type === "cocktail" && (
-          <Text style={styles.cardMetaText}>🍸 {item.strCategory}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+            <Martini size={14} color="#666" style={{ marginRight: 4 }} />
+            <Text style={styles.cardMetaText}>{item.strCategory}</Text>
+          </View>
         )}
       </View>
     </TouchableOpacity>
   );
 
-  const CategoryButton = ({ emoji, label, color, onPress }) => (
+  const CategoryButton = ({ icon: Icon, label, color, onPress }) => (
     <TouchableOpacity style={styles.categoryButton} onPress={onPress}>
       <View style={[styles.categoryIcon, { backgroundColor: color }]}>
-        <Text style={styles.categoryEmoji}>{emoji}</Text>
+        <Icon size={28} color="#333" />
       </View>
       <Text style={styles.categoryLabel}>{label}</Text>
     </TouchableOpacity>
@@ -226,20 +249,23 @@ const HomeScreen = ({ navigation }) => {
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>Good Evening! 🌙</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+              <Text style={styles.greeting}>Good Evening! </Text>
+              <Moon size={14} color="#666" />
+            </View>
             <Text style={styles.title}>What are you craving?</Text>
           </View>
           <TouchableOpacity
             style={styles.profileButton}
             onPress={() => navigation.navigate("ProfileTab")}
           >
-            <Text style={styles.profileIcon}>👤</Text>
+            <User size={20} color="#FFF" />
           </TouchableOpacity>
         </View>
 
         {/* Search Bar */}
         <View style={styles.searchContainer}>
-          <Text style={styles.searchIcon}>🔍</Text>
+          <Search size={20} color="#666" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
             placeholder="Search recipes or cocktails..."
@@ -254,25 +280,25 @@ const HomeScreen = ({ navigation }) => {
         {/* Quick Categories */}
         <View style={styles.categoriesContainer}>
           <CategoryButton
-            emoji="🍳"
+            icon={ChefHat}
             label="Recipes"
             color="#FF6B6B20"
             onPress={() => navigation.navigate("ExploreTab")}
           />
           <CategoryButton
-            emoji="🍹"
+            icon={Martini}
             label="Cocktails"
             color="#4ECDC420"
             onPress={() => navigation.navigate("ExploreTab")}
           />
           <CategoryButton
-            emoji="📈"
+            icon={TrendingUp}
             label="Trending"
             color="#FFD93D20"
             onPress={() => console.log("Show trending")}
           />
           <CategoryButton
-            emoji="✨"
+            icon={Sparkles}
             label="Random"
             color="#A78BFA20"
             onPress={loadHomeData}
@@ -282,9 +308,13 @@ const HomeScreen = ({ navigation }) => {
         {/* Trending Recipes Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>🔥 Trending Recipes</Text>
-            <TouchableOpacity onPress={() => navigation.navigate("ExploreTab")}>
-              <Text style={styles.seeAll}>See All →</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Flame size={20} color="#FF6B6B" style={{ marginRight: 8 }} />
+              <Text style={styles.sectionTitle}>Trending Recipes</Text>
+            </View>
+            <TouchableOpacity onPress={() => navigation.navigate("ExploreTab")} style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={styles.seeAll}>See All</Text>
+              <ArrowRight size={14} color="#FF6B6B" style={{ marginLeft: 4 }} />
             </TouchableOpacity>
           </View>
           <ScrollView
@@ -305,9 +335,13 @@ const HomeScreen = ({ navigation }) => {
         {/* Featured Cocktails Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>🍹 Featured Cocktails</Text>
-            <TouchableOpacity onPress={() => navigation.navigate("ExploreTab")}>
-              <Text style={styles.seeAll}>See All →</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Martini size={20} color="#4ECDC4" style={{ marginRight: 8 }} />
+              <Text style={styles.sectionTitle}>Featured Cocktails</Text>
+            </View>
+            <TouchableOpacity onPress={() => navigation.navigate("ExploreTab")} style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={styles.seeAll}>See All</Text>
+              <ArrowRight size={14} color="#FF6B6B" style={{ marginLeft: 4 }} />
             </TouchableOpacity>
           </View>
           <ScrollView
@@ -334,7 +368,10 @@ const HomeScreen = ({ navigation }) => {
             })}
             activeOpacity={0.8}
           >
-            <Text style={styles.bannerTitle}>Cook with what you have! 🥘</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+              <Text style={styles.bannerTitle}>Cook with what you have!</Text>
+              <CookingPot size={24} color="#FFF" style={{ marginLeft: 8 }} />
+            </View>
             <Text style={styles.bannerText}>
               Find recipes using ingredients in your pantry
             </Text>

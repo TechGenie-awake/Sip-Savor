@@ -2,7 +2,7 @@ import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { Ionicons } from "@expo/vector-icons";
+import { Home, Search, Heart, Calendar, User } from "lucide-react-native";
 
 // Import Screens
 import OnboardingScreen from "../screens/OnboardingScreen";
@@ -19,6 +19,7 @@ import CookingModeScreen from "../screens/CookingModeScreen";
 
 import { colors } from "../styles/theme";
 import { AuthProvider, AuthContext } from "../context/AuthContext";
+import { SavedProvider } from "../context/SavedContext";
 import { ActivityIndicator, View } from "react-native";
 
 const Stack = createStackNavigator();
@@ -31,21 +32,17 @@ const TabNavigator = () => {
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarIcon: ({ focused, color, size }) => {
-          let iconName;
-
           if (route.name === "HomeTab") {
-            iconName = focused ? "home" : "home-outline";
+            return <Home size={size} color={color} />;
           } else if (route.name === "ExploreTab") {
-            iconName = focused ? "search" : "search-outline";
+            return <Search size={size} color={color} />;
           } else if (route.name === "SavedTab") {
-            iconName = focused ? "heart" : "heart-outline";
+            return <Heart size={size} color={color} />;
           } else if (route.name === "PlannerTab") {
-            iconName = focused ? "calendar" : "calendar-outline";
+            return <Calendar size={size} color={color} />;
           } else if (route.name === "ProfileTab") {
-            iconName = focused ? "person" : "person-outline";
+            return <User size={size} color={color} />;
           }
-
-          return <Ionicons name={iconName} size={size} color={color} />;
         },
         tabBarActiveTintColor: colors.primary.main,
         tabBarInactiveTintColor: colors.text.secondary,
@@ -159,7 +156,9 @@ const RootNavigator = () => {
 const AppNavigator = () => {
   return (
     <AuthProvider>
-      <RootNavigator />
+      <SavedProvider>
+        <RootNavigator />
+      </SavedProvider>
     </AuthProvider>
   );
 };
