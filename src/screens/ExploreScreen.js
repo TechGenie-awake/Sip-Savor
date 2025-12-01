@@ -12,25 +12,23 @@ import {
   SafeAreaView,
   Dimensions,
 } from "react-native";
-import { 
-  Search, 
-  XCircle, 
-  ArrowLeft, 
-  Clock, 
-  Martini, 
-  ChefHat, 
-  Salad, 
-  Utensils, 
-  Cake, 
-  Leaf, 
-  Soup, 
-  Target, 
-  Flame 
+import {
+  Search,
+  XCircle,
+  ArrowLeft,
+  Clock,
+  Martini,
+  ChefHat,
+  Salad,
+  Utensils,
+  Cake,
+  Leaf,
+  Soup,
+  Target,
+  Flame,
 } from "lucide-react-native";
 
 import { recipeAPI, cocktailAPI } from "../services/api";
-
-
 
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = (width - 60) / 2; // 2 columns with proper spacing
@@ -39,25 +37,29 @@ const FALLBACK_COCKTAILS = [
   {
     idDrink: "11060",
     strDrink: "Margarita",
-    strDrinkThumb: "https://www.thecocktaildb.com/images/media/drink/5n43dt1582476043.jpg",
+    strDrinkThumb:
+      "https://www.thecocktaildb.com/images/media/drink/5n43dt1582476043.jpg",
     strCategory: "Ordinary Drink",
   },
   {
     idDrink: "11118",
     strDrink: "Blue Margarita",
-    strDrinkThumb: "https://www.thecocktaildb.com/images/media/drink/bry4qe1582751040.jpg",
+    strDrinkThumb:
+      "https://www.thecocktaildb.com/images/media/drink/bry4qe1582751040.jpg",
     strCategory: "Ordinary Drink",
   },
   {
     idDrink: "17196",
     strDrink: "Cosmopolitan",
-    strDrinkThumb: "https://www.thecocktaildb.com/images/media/drink/kpsajh1643797264.jpg",
+    strDrinkThumb:
+      "https://www.thecocktaildb.com/images/media/drink/kpsajh1643797264.jpg",
     strCategory: "Cocktail",
   },
   {
     idDrink: "11690",
     strDrink: "Mai Tai",
-    strDrinkThumb: "https://www.thecocktaildb.com/images/media/drink/twyrrp1439907470.jpg",
+    strDrinkThumb:
+      "https://www.thecocktaildb.com/images/media/drink/twyrrp1439907470.jpg",
     strCategory: "Ordinary Drink",
   },
 ];
@@ -68,7 +70,7 @@ const ExploreScreen = ({ navigation, route }) => {
   const [cocktails, setCocktails] = useState([]);
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
-  
+
   // Default content (trending/popular)
   const [trendingRecipes, setTrendingRecipes] = useState([]);
   const [popularCocktails, setPopularCocktails] = useState([]);
@@ -112,7 +114,7 @@ const ExploreScreen = ({ navigation, route }) => {
       const cocktails = cocktailsPromises
         .map((res) => (res.success ? res.data?.drinks?.[0] : null))
         .filter(Boolean);
-      
+
       if (cocktails.length > 0) {
         setPopularCocktails(cocktails);
       } else {
@@ -213,7 +215,7 @@ const ExploreScreen = ({ navigation, route }) => {
           {item.title}
         </Text>
         <View style={styles.cardMeta}>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
             <Clock size={12} color="#666" style={{ marginRight: 4 }} />
             <Text style={styles.cardMetaText}>
               {item.readyInMinutes || 30} min
@@ -239,14 +241,19 @@ const ExploreScreen = ({ navigation, route }) => {
         <Text style={styles.cardTitle} numberOfLines={2}>
           {item.strDrink}
         </Text>
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+        <View
+          style={{ flexDirection: "row", alignItems: "center", marginTop: 4 }}
+        >
           <Martini size={12} color="#666" style={{ marginRight: 4 }} />
-          <Text style={styles.cardMetaText}>{item.strCategory || "Cocktail"}</Text>
+          <Text style={styles.cardMetaText}>
+            {item.strCategory || "Cocktail"}
+          </Text>
         </View>
       </View>
     </TouchableOpacity>
   );
 
+  const CategoryChip = ({ category }) => (
     <TouchableOpacity
       style={styles.categoryChip}
       onPress={() => handleCategoryPress(category.query)}
@@ -255,6 +262,7 @@ const ExploreScreen = ({ navigation, route }) => {
       <category.icon size={20} color="#333" />
       <Text style={styles.categoryName}>{category.name}</Text>
     </TouchableOpacity>
+  );
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -313,7 +321,13 @@ const ExploreScreen = ({ navigation, route }) => {
             {/* Recipes Section */}
             {recipes.length > 0 && (
               <View style={styles.section}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    marginBottom: 16,
+                  }}
+                >
                   <ChefHat size={20} color="#333" style={{ marginRight: 8 }} />
                   <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>
                     Recipes ({recipes.length})
@@ -330,7 +344,13 @@ const ExploreScreen = ({ navigation, route }) => {
             {/* Cocktails Section */}
             {cocktails.length > 0 && (
               <View style={styles.section}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    marginBottom: 16,
+                  }}
+                >
                   <Martini size={20} color="#333" style={{ marginRight: 8 }} />
                   <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>
                     Cocktails ({cocktails.length})
@@ -338,7 +358,10 @@ const ExploreScreen = ({ navigation, route }) => {
                 </View>
                 <View style={styles.resultsGrid}>
                   {cocktails.map((cocktail, index) => (
-                    <CocktailCard key={cocktail.idDrink || index} item={cocktail} />
+                    <CocktailCard
+                      key={cocktail.idDrink || index}
+                      item={cocktail}
+                    />
                   ))}
                 </View>
               </View>
@@ -363,9 +386,17 @@ const ExploreScreen = ({ navigation, route }) => {
           >
             {/* Categories */}
             <View style={styles.section}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  marginBottom: 16,
+                }}
+              >
                 <Target size={20} color="#333" style={{ marginRight: 8 }} />
-                <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>Quick Search</Text>
+                <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>
+                  Quick Search
+                </Text>
               </View>
               <ScrollView
                 horizontal
@@ -381,15 +412,27 @@ const ExploreScreen = ({ navigation, route }) => {
             {loadingTrending ? (
               <View style={styles.trendingLoadingContainer}>
                 <ActivityIndicator size="large" color="#FF6B6B" />
-                <Text style={styles.loadingText}>Loading trending content...</Text>
+                <Text style={styles.loadingText}>
+                  Loading trending content...
+                </Text>
               </View>
             ) : (
               <>
                 {/* Trending Recipes */}
                 {trendingRecipes.length > 0 && (
                   <View style={styles.section}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
-                      <Flame size={20} color="#333" style={{ marginRight: 8 }} />
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        marginBottom: 16,
+                      }}
+                    >
+                      <Flame
+                        size={20}
+                        color="#333"
+                        style={{ marginRight: 8 }}
+                      />
                       <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>
                         Trending Recipes
                       </Text>
@@ -405,8 +448,18 @@ const ExploreScreen = ({ navigation, route }) => {
                 {/* Popular Cocktails */}
                 {popularCocktails.length > 0 && (
                   <View style={styles.section}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
-                      <Martini size={20} color="#333" style={{ marginRight: 8 }} />
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        marginBottom: 16,
+                      }}
+                    >
+                      <Martini
+                        size={20}
+                        color="#333"
+                        style={{ marginRight: 8 }}
+                      />
                       <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>
                         Popular Cocktails
                       </Text>
