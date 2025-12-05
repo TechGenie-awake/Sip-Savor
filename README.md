@@ -62,6 +62,3 @@ npm start
 
 Gayatri Jaiswal - 2024-B-29012006B
 
-## 📄 License
-
-MIT
