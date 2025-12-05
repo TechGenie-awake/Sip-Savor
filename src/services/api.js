@@ -4,17 +4,29 @@
 
 // Update this based on your environment
 const getBaseURL = () => {
-  // For development, you can switch between these:
-
-  // Local testing (iOS simulator)
-  return 'http://localhost:3000/api';
-
-  // Android emulator
-  // return 'http://10.0.2.2:3000/api';
-
-  // Physical device (replace with your computer's IP)
+  // Detect if running in web browser
+  const isWeb = typeof window !== 'undefined' && window.document;
+  
+  if (isWeb) {
+    // Web browser - use localhost
+    return 'http://localhost:3000/api';
+  }
+  
+  // For React Native
+  // iOS simulator uses localhost
+  // Android emulator uses 10.0.2.2
+  const Platform = require('react-native').Platform;
+  
+  if (Platform.OS === 'android') {
+    return 'http://10.0.2.2:3000/api';
+  } else {
+    // iOS or other platforms
+    return 'http://localhost:3000/api';
+  }
+  
+  // For physical devices, you would need to use your computer's IP
   // return "http://192.168.128.144:3000/api";
-
+  
   // Production
   // return 'https://your-backend.railway.app/api';
 };
