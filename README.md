@@ -11,7 +11,7 @@ A mobile app to discover and save food recipes and cocktails in one place.
 ### Prerequisites
 - Node.js
 - Expo CLI
-- PostgreSQL
+- mySQL
 
 ### Installation
 ```bash
@@ -55,7 +55,7 @@ npm start
 
 - React Native + Expo
 - Node.js + Express
-- PostgreSQL + Prisma
+- mySQL + Prisma
 - Spoonacular API + TheCocktailDB API
 
 ## 👨‍💻 Author
